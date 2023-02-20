@@ -1,0 +1,293 @@
+; https://stackoverflow.com/questions/43298908/how-to-add-administrator-privileges-to-autohotkey-script
+full_command_line := DllCall("GetCommandLine", "str")
+if not (A_IsAdmin or RegExMatch(full_command_line, " /restart(?!\S)"))
+{
+    try ; leads to having the script re-launching itself as administrator
+    {
+        if A_IsCompiled
+            Run *RunAs "%A_ScriptFullPath%" /restart
+        else
+            Run *RunAs "%A_AhkPath%" /restart "%A_ScriptFullPath%"
+    }
+    ExitApp
+}
+
+
+#IfWinActive ahk_exe YuanShen.exe
+
+F1::l
+CapsLock::MButton
+RButton::E
+WheelDown::F
+
+
+; 按住空格等于狂按空格（按住 1.3 秒之后才触发，因为离开浪船需要按住空格）
+~*Space::
+    KeyWait, Space, T1.1
+    If Not ErrorLevel
+    {
+        PixelGetColor, color, 700, 1020
+        If (color == 0xD8E5EC)
+        {
+            BlockInput, MouseMove
+            MouseMove, 700, 1020
+            Click
+            BlockInput, MouseMoveOff
+            Return
+        }
+        PixelGetColor, color, 1130, 880
+        If (color == 0x66534A)
+        {
+            BlockInput, MouseMove
+            MouseGetPos, xpos, ypos
+            MouseMove, 1130, 880
+            Click
+            MouseMove, %xpos%, %ypos%
+            BlockInput, MouseMoveOff
+            Return
+        }
+        Return
+    }
+    Loop
+    {
+        Send, {Space}
+        KeyWait, Space, T0.05
+        If Not ErrorLevel
+        {
+            Break
+        }
+    }
+Return
+
+
+; 队伍切换界面左右
+~a::
+    PixelGetColor, color, 64, 538
+    If (color == 0xD8E5EC)
+    {
+        BlockInput, MouseMove
+        MouseMove, 64, 538
+        Click
+        BlockInput, MouseMoveOff
+    }
+Return
+
+~d::
+    PixelGetColor, color, 1853, 538
+    If (color == 0xD8E5EC)
+    {
+        BlockInput, MouseMove
+        MouseMove, 1853, 538
+        Click
+        BlockInput, MouseMoveOff
+    }
+Return
+
+; 对话选项
+Selection(n) {
+    xpos := 1298
+    choices := 0
+    Loop, 8
+    {
+        ypos := 810 - 74 * choices
+        PixelGetColor, color, %xpos%, %ypos%
+        If (color != 0xFFFFFF)
+        {
+            Break
+        }
+        choices += 1
+    }
+    if (choices == 0)
+    {
+        Return False
+    }
+    ypos := 810 - 74 * choices + 74 * n
+    BlockInput, MouseMove
+    MouseMove, %xpos%, %ypos%
+    Click
+    BlockInput, MouseMoveOff
+    Return True
+}
+
+~1::
+    PixelGetColor, color, 64, 538
+    If (color == 0xD8E5EC)
+    {
+        BlockInput, MouseMove
+        MouseMove, 350, 490
+        Click
+        BlockInput, MouseMoveOff
+        Return
+    }
+    If (Selection(1))
+    {
+        Return
+    }
+Return
+
+~2::
+    PixelGetColor, color, 64, 538
+    If (color == 0xD8E5EC)
+    {
+        BlockInput, MouseMove
+        MouseMove, 760, 490
+        Click
+        BlockInput, MouseMoveOff
+        Return
+    }
+    If (Selection(2))
+    {
+        Return
+    }
+Return
+
+~3::
+    PixelGetColor, color, 64, 538
+    If (color == 0xD8E5EC)
+    {
+        BlockInput, MouseMove
+        MouseMove, 1170, 490
+        Click
+        BlockInput, MouseMoveOff
+        Return
+    }
+    If (Selection(3))
+    {
+        Return
+    }
+Return
+
+~4::
+    PixelGetColor, color, 64, 538
+    If (color == 0xD8E5EC)
+    {
+        BlockInput, MouseMove
+        MouseMove, 1590, 490
+        Click
+        BlockInput, MouseMoveOff
+        Return
+    }
+    If (Selection(4))
+    {
+        Return
+    }
+Return
+
+~5::
+    If (Selection(5))
+    {
+        Return
+    }
+Return
+
+~6::
+    If (Selection(6))
+    {
+        Return
+    }
+Return
+
+~7::
+    If (Selection(7))
+    {
+        Return
+    }
+Return
+
+; 替换圣遗物、领取任务奖励
+`::
+    BlockInput, MouseMove
+    MouseGetPos, xpos, ypos
+    MouseMove, 1600, 1000
+    Click
+    Sleep 100
+    MouseMove, 1200, 760
+    Click
+    Sleep 100
+    MouseMove, %xpos%, %ypos%
+    BlockInput, MouseMoveOff
+Return
+
+; 强化圣遗物、领取任务奖励
+F8::
+    BlockInput, MouseMove
+    MouseGetPos, xpos, ypos
+    xpos2 := xpos
+    ypos2 := ypos
+    Loop, 6
+    {
+        Click
+        xpos2 += 142
+        If (xpos2 > 1142)
+        {
+            xpos2 -= 8 * 142
+            ypos2 += 168
+        }
+        MouseMove %xpos2%, %ypos2%
+    }
+    Send {Esc}
+    Sleep 100
+    MouseMove, 1600, 1000
+    Click
+    MouseMove, 130, 150
+    Click
+    MouseMove, 130, 225
+    Click
+    MouseMove, 1250, 870
+    Click
+    MouseMove, %xpos%, %ypos%
+    BlockInput, MouseMoveOff
+Return
+
+
+; 5个探索派遣
+Expedition(x1, y1, x2, y2, x3, y3) {
+    BlockInput, MouseMove
+    MouseMove, x1, y1
+    Sleep 50
+    Click
+    MouseMove, x2, y2
+    Sleep 50
+    Click
+    MouseMove, 1650, 1000
+    Click
+    Sleep 250
+    Click
+    Sleep 250
+    Click
+    MouseMove, x3, y3
+    Sleep 50
+    Click
+    BlockInput, MouseMoveOff
+}
+
+F9::
+    ; 蒙德
+    Expedition(150, 165, 1063, 333, 300, 150)
+    Expedition(150, 165, 1176, 659, 300, 300)
+    ; 璃月
+    Expedition(150, 230, 724, 333, 300, 150)
+    Expedition(150, 230, 961, 454, 300, 300)
+    ; 稻妻
+    Expedition(150, 300, 1101, 283, 300, 150)
+Return
+
+; 点击右下角的确定
+Tab::
+    KeyWait, Tab, T0.2
+    If ErrorLevel
+    {
+        Send, {Tab down}
+        KeyWait, Tab
+        Send, {Tab up}
+    }
+    else										
+    {
+        BlockInput, MouseMove
+        MouseGetPos, xpos, ypos
+        MouseMove, 1650, 1000
+        Click
+        MouseMove, %xpos%, %ypos%
+        BlockInput, MouseMoveOff
+    }
+Return
